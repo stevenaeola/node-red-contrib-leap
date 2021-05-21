@@ -20,6 +20,10 @@
   "author": "stevenaeola@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "leapjs": "^1.1.0"
+    "leapjs": "^1.1.0",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "eslint-config-standard": "^16.0.2"
   }
 }
