@@ -8,9 +8,9 @@
   },
   "node-red": {
     "nodes": {
-        "leap": "leap.js"
+      "leap": "leap.js"
     }
-},
+  },
   "keywords": [
     "node",
     "red",
