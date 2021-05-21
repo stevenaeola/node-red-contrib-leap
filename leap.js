@@ -12,62 +12,11 @@ module.exports = function (RED) {
 
         node.connected = { server: false };
 
-        node.hands = {
-            left: { entered: false, pinched: false, clenched: false },
-            right: { entered: false, pinched: false, clenched: false }
-        };
-        // threshholds for pinched and clenched
-        node.upperThreshhold = 0.9;
-        node.lowerThreshhold = 0.7;
-
         node.controller.on('frame', (frame) => {
-            const handsPrevious = _.cloneDeep(node.hands);
-            for (const lr in node.hands) {
-                node.hands[lr].entered = false;
-            }
-
-            const frameSummary = {};
-
             for (const hand of frame.hands) {
                 const lr = hand.type; // left or right
                 const summary = handSummary(hand);
-                frameSummary[lr] = summary;
-
-                node.hands[lr].entered = true;
-                if (!handsPrevious[lr].entered) {
-                    sendHandMsg(lr, { payload: 'enter', hand: summary });
-                }
-
-                if (summary.confidence > 0.5) {
-                    if (summary.pinch > node.upperThreshhold && !handsPrevious[lr].pinched) {
-                        node.hands[lr].pinched = true;
-                        sendHandMsg(lr, { payload: 'pinch', hand: summary });
-                    }
-                    if (summary.pinch < node.lowerThreshhold && handsPrevious[lr].pinched) {
-                        node.hands[lr].pinched = false;
-                        sendHandMsg(lr, { payload: 'unpinch', hand: summary });
-                    }
-                    if (summary.grab > node.upperThreshhold && !handsPrevious[lr].clenched) {
-                        node.hands[lr].clenched = true;
-                        sendHandMsg(lr, { payload: 'clench', hand: summary });
-                    }
-                    if (summary.grab < node.lowerThreshhold && handsPrevious[lr].clenched) {
-                        node.hands[lr].clenched = false;
-                        sendHandMsg(lr, { payload: 'unclench', hand: summary });
-                    }
-                }
-            }
-
-            for (const lr in node.hands) {
-                if (handsPrevious[lr].entered && !node.hands[lr].entered) {
-                    sendHandMsg(lr, { payload: 'leave' });
-                    node.hands[lr].clenched = false;
-                    node.hands[lr].pinched = false;
-                }
-            }
-
-            if (node.hands.left.entered || node.hands.right.entered) {
-                node.send([{ payload: frameSummary }, null, null]);
+                sendHandMsg(lr, {payload: summary});
             }
         });
 
@@ -80,16 +29,17 @@ module.exports = function (RED) {
             node.warn('disconnected from leap server');
             connected('server', false);
         });
+
         node.controller.connect();
 
         function sendHandMsg (lr, content) {
             switch (lr) {
                 case 'left':
-                    node.send([null, content, null]);
+                    node.send([content, null]);
                     break;
 
                 case 'right':
-                    node.send([null, null, content]);
+                    node.send([null, content]);
                     break;
 
                 default:
@@ -108,15 +58,21 @@ module.exports = function (RED) {
 
         // include only the 'important' details, to improve performance
         function handSummary (hand) {
+            const pos = hand.stabilizedPalmPosition;
+            const vel = hand.palmVelocity;
             return {
-                position: hand.stabilizedPalmPosition,
-                normal: hand.palmNormal,
-                velocity: hand.palmVelocity,
+                x: pos[0],
+                y: pos[1],
+                z: pos[2],
+                vx: vel[0],
+                vy: vel[1],
+                vz: vel[2],
                 pitch: hand.pitch(),
                 roll: hand.roll(),
                 yaw: hand.yaw(),
                 pinch: hand.pinchStrength,
                 grab: hand.grabStrength,
+                radius: hand.sphereRadius,
                 confidence: hand.confidence
             };
         }

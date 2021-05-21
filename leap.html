@@ -6,8 +6,8 @@
             name: { required: false }
         },
         inputs: 0,
-        outputs: 3,
-        outputLabels: ["frames", "LH events", "RH events"],
+        outputs: 2,
+        outputLabels: ["left hand", "right hand"],
         icon: "font-awesome/fa-hand-paper-o",
         label: function () {
             return this.name || "leap";
@@ -30,15 +30,21 @@
       <h3>Outputs</h3>
   
       <dl class="message-properties">
-        <dt>payload <span class="property-type">object</span></dt>
-        <dd>the Frame object passed from the controller, as described in the <a href="https://developer-archive.leapmotion.com/documentation/javascript/api/Leap.Frame.html">API documentation</a></dd>
+        <dt>left hand <span class="property-type">object</span></dt>
+        <dd>  from <a href="https://developer-archive.leapmotion.com/documentation/javascript/api/Leap.Hand.html">API documentation</a></dd>              position: hand.stabilizedPalmPosition,
+            normal: hand.palmNormal,
+            velocity: hand.palmVelocity,
+            pitch: hand.pitch(),
+            roll: hand.roll(),
+            yaw: hand.yaw(),
+            pinch: hand.pinchStrength,
+            grab: hand.grabStrength,
+            confidence: hand.confidence</dd>
       </dl>
 
       <dl class="message-properties">
-        <dt>payload <span class="property-type">string</span></dt>
-        <dd>Action name: of 'enter', 'leave'</dd>
-        <dt>hand <span class="property-type">object</span></dt>
-        <dd>the Hand object passed from the controller, as described in the <a href="https://developer-archive.leapmotion.com/documentation/javascript/api/Leap.Hand.html">API documentation</a></dd>
+        <dt>right hand <span class="property-type">kbject</span></dt>
+        <dd>like left hand</dd>
       </dl>
   
   <h3>Details</h3>
