@@ -1,0 +1,48 @@
+<script type="text/javascript">
+    RED.nodes.registerType("leap", {
+        category: "input",
+        color: "#C7E9C0",
+        defaults: {
+            name: { required: false }
+        },
+        inputs: 0,
+        outputs: 3,
+        outputLabels: ["frames", "LH events", "RH events"],
+        icon: "font-awesome/fa-hand-paper-o",
+        label: function () {
+            return this.name || "leap";
+        }
+    });
+</script>
+  
+  <script type="text/x-red" data-template-name="leap">
+  
+      <div class="form-row">
+          <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+          <input type="text" id="node-input-name">
+      </div>
+  
+  </script>
+  
+  <script type="text/x-red" data-help-name="leap">
+    <p>Connects to a <a href="https://www.ultraleap.com/product/leap-motion-controller/">Leap Motion Controller</a></p>
+  
+      <h3>Outputs</h3>
+  
+      <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>the Frame object passed from the controller, as described in the <a href="https://developer-archive.leapmotion.com/documentation/javascript/api/Leap.Frame.html">API documentation</a></dd>
+      </dl>
+
+      <dl class="message-properties">
+        <dt>payload <span class="property-type">string</span></dt>
+        <dd>Action name: of 'enter', 'leave'</dd>
+        <dt>hand <span class="property-type">object</span></dt>
+        <dd>the Hand object passed from the controller, as described in the <a href="https://developer-archive.leapmotion.com/documentation/javascript/api/Leap.Hand.html">API documentation</a></dd>
+      </dl>
+  
+  <h3>Details</h3>
+  
+   
+  </script>
+  
