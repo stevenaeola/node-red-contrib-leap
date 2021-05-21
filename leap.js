@@ -26,22 +26,49 @@ module.exports = function (RED) {
                 node.hands[lr].entered = false;
             }
 
+            const frameSummary = {};
+
             for (const hand of frame.hands) {
                 const lr = hand.type; // left or right
+                const summary = handSummary(hand);
+                frameSummary[lr] = summary;
 
                 node.hands[lr].entered = true;
                 if (!handsPrevious[lr].entered) {
-                    sendHandMsg(lr, { payload: 'enter', palmPosition: hand.palmPosition });
+                    sendHandMsg(lr, { payload: 'enter', hand: summary });
+                }
+
+                if (summary.confidence > 0.5) {
+                    if (summary.pinch > node.upperThreshhold && !handsPrevious[lr].pinched) {
+                        node.hands[lr].pinched = true;
+                        sendHandMsg(lr, { payload: 'pinch', hand: summary });
+                    }
+                    if (summary.pinch < node.lowerThreshhold && handsPrevious[lr].pinched) {
+                        node.hands[lr].pinched = false;
+                        sendHandMsg(lr, { payload: 'unpinch', hand: summary });
+                    }
+                    if (summary.grab > node.upperThreshhold && !handsPrevious[lr].clenched) {
+                        node.hands[lr].clenched = true;
+                        sendHandMsg(lr, { payload: 'clench', hand: summary });
+                    }
+                    if (summary.grab < node.lowerThreshhold && handsPrevious[lr].clenched) {
+                        node.hands[lr].clenched = false;
+                        sendHandMsg(lr, { payload: 'unclench', hand: summary });
+                    }
                 }
             }
 
             for (const lr in node.hands) {
                 if (handsPrevious[lr].entered && !node.hands[lr].entered) {
                     sendHandMsg(lr, { payload: 'leave' });
+                    node.hands[lr].clenched = false;
+                    node.hands[lr].pinched = false;
                 }
             }
 
-            node.send([{ payload: 'frame' }, null, null]);
+            if (node.hands.left.entered || node.hands.right.entered) {
+                node.send([{ payload: frameSummary }, null, null]);
+            }
         });
 
         node.controller.on('connect', () => {
@@ -77,6 +104,21 @@ module.exports = function (RED) {
             } else {
                 node.status({ fill: 'red', shape: 'ring', text: 'disconnected' });
             }
+        }
+
+        // include only the 'important' details, to improve performance
+        function handSummary (hand) {
+            return {
+                position: hand.stabilizedPalmPosition,
+                normal: hand.palmNormal,
+                velocity: hand.palmVelocity,
+                pitch: hand.pitch(),
+                roll: hand.roll(),
+                yaw: hand.yaw(),
+                pinch: hand.pinchStrength,
+                grab: hand.grabStrength,
+                confidence: hand.confidence
+            };
         }
     }
     RED.nodes.registerType('leap', LeapNode);
